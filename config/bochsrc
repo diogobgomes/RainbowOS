@@ -1,0 +1,15 @@
+ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+#ata0-master: type=cdrom, path="./PatroclusOS.iso", status=inserted
+ata0-master: type=disk, mode=flat, translation=lba, path="./diskimage.dd", status=inserted
+boot: disk
+#cpuid: x86_64=1
+cpu: count=1:1:1, ips=4000000, quantum=16, model=bx_generic, reset_on_triple_fault=1, cpuid_limit_winnt=0, ignore_bad_msrs=1, mwait_is_nop=0
+cpuid: level=6, stepping=3, model=3, family=6, vendor_string="AuthenticAMD", brand_string="AMD Athlon(tm) processor"
+cpuid: mmx=true, apic=xapic, simd=sse2, sse4a=false, misaligned_sse=false, sep=true
+cpuid: movbe=false, adx=false, aes=false, sha=false, xsave=false, xsaveopt=false, x86_64=true
+cpuid: 1g_pages=false, pcid=false, fsgsbase=false, smep=false, smap=false, mwait=true
+display_library: x, options="gui_debug"
+#cpu: reset_on_triple_fault=0
+magic_break: enabled=1
+log: bochsout.txt
+logprefix: %t-%e-@%i-%d

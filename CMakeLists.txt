@@ -67,6 +67,9 @@ message(STATUS "Creating gdb files...")
 execute_process( COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/config/gdbinit ${CMAKE_BINARY_DIR}/.gdbinit)
 execute_process( COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.gdb_history)
 
+# Add bochsrc
+message(STATUS "Creating .bochsrc...")
+execute_process( COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/config/bochsrc ${CMAKE_BINARY_DIR}/.bochsrc)
 
 # Diskimage generation
 add_custom_target(
@@ -117,6 +120,18 @@ if(qemu_FOUND)
         qemu
         COMMAND ${qemu_EXECUTABLE} -drive file=${DISKIMAGE},format=raw
         COMMENT "Launching qemu..."
+        DEPENDS diskimage
+        VERBATIM
+    )
+endif()
+
+# TODO Probably do this 
+find_package(bochs)
+if(bochs_FOUND)
+    add_custom_target(
+        bochs
+        COMMAND ${bochs}
+        COMMENT "Launching bochs..."
         DEPENDS diskimage
         VERBATIM
     )
