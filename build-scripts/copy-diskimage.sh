@@ -39,7 +39,6 @@ if ! sudo ${rootsrcdir}/build-scripts/mountdirs.sh ${mount_dir} \
 fi
 
 # Now copy the kernel over
-#BUG remove comments here
 cp ${kernel} ${mount_dir}/kernel.bin
 sync
 

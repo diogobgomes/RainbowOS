@@ -50,8 +50,7 @@ void kmain( uint32_t multiboot_flag,
     initTerminal.setColor(io::vga_color::VGA_COLOR_LIGHT_GREY,
                             io::vga_color::VGA_COLOR_BLACK);
 
-    out << "Terminal index is " << terminalIndex << "\n";
-    out << "Multiboot flag is " << multiboot_flag << "\n";
+    // Setup Interrupts
 
     earlyPanic("Shouldn't be seeing this!!!");
 }

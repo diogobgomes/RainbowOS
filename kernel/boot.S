@@ -19,6 +19,12 @@
 .long FLAGS
 .long CHECKSUM
 
+# Stuff for the GDT
+#define CODE32_KSEGMENT              0x08
+#define DATA32_KSEGMENT              0x10
+#define CODE32_USEGMENT              0x18
+#define DATA32_USEGMENT              0x20
+
 
 # BSS
 # Stack, and paging tables
@@ -49,8 +55,28 @@ _start:
     mov $stack_top, %esp
     mov $stack_top, %ebp
 
-    # We don't bother with the GDT since the bootloader sets one up for us
-    # (grub does this, and I pinky promise my own implementation also will)
+    # Even though there is a GDT set up by our bootloader (and GRUB also does
+    # it, let's be nice people and set one up (it's not hard and barely adds
+    # any size to the binary)
+    push %eax # Preserve %eax
+
+    cli
+    mov $gdt_desc, %eax
+    lgdt (%eax)
+    mov %cr0, %eax
+    or $1, %eax
+    mov %eax, %cr0
+
+.gdt_reload:
+    # Reload data segments
+    mov $DATA32_KSEGMENT, %eax
+    mov %eax, %ds
+    mov %eax, %es
+    mov %eax, %fs
+    mov %eax, %gs
+    mov %eax, %ss
+
+    pop %eax # Restore %eax
 
     # Push variables to the stack
     push %edx # Terminal index
@@ -67,3 +93,26 @@ _start:
     cli
 1:  hlt
     jmp 1b
+
+.data
+
+# Since the GDT is fixed, let's just put it in and forget about it
+gdt_start:
+gdt_null_segment:
+    .quad 0
+gdt_32_kcode_segment:
+    .quad 0x00CF9A000000FFFF
+gdt_32_kdata_segment:
+    .quad 0x00CF92000000FFFF
+gdt_32_ucode_segment:
+    .quad 0x00CFFA000000FFFF
+gdt_32_udata_segment:
+    .quad 0x008FF2000000FFFF
+# TODO at some point, we must have a Task State Segment here
+gdt_end:
+
+.equ GDT_START, gdt_start
+
+gdt_desc:
+    .word gdt_end - gdt_start - 1
+    .long GDT_START
