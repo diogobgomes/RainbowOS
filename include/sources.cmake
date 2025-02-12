@@ -18,6 +18,9 @@ set(
     klib/string.h
     sys/elf.h
     sys/multiboot.h
+    kernel/interrupts.hpp
+    kernel/gdt.h
+    kernel/cpu.hpp
 )
 
 list(TRANSFORM HEADER_FILES PREPEND ${CMAKE_SOURCE_DIR}/include/)

@@ -19,11 +19,8 @@
 .long FLAGS
 .long CHECKSUM
 
-# Stuff for the GDT
-#define CODE32_KSEGMENT              0x08
-#define DATA32_KSEGMENT              0x10
-#define CODE32_USEGMENT              0x18
-#define DATA32_USEGMENT              0x20
+# Include the GDT defines
+#include <kernel/gdt.h>
 
 
 # BSS

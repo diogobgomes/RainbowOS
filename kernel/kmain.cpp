@@ -13,12 +13,16 @@
 #include <klib/io.hpp>
 #include <klib/cstdlib.hpp>
 #include <devices/BIOSVideoIO.hpp>
+#include <earlyLib/memory.hpp>
+#include <kernel/interrupts.hpp>
 
 
 extern "C" {
     [[noreturn]] void kmain( uint32_t multiboot_flag,
             const struct multiboot_info_structure* info, uint32_t terminalIndex );
 }
+
+extern uintptr_t _endSymbol;
 
 // Variables
 io::_outstream<io::framebuffer_terminal> out;
@@ -50,7 +54,19 @@ void kmain( uint32_t multiboot_flag,
     initTerminal.setColor(io::vga_color::VGA_COLOR_LIGHT_GREY,
                             io::vga_color::VGA_COLOR_BLACK);
 
+    // Set up temporary heap, 4K should be enough
+    void* endOfBinary = &_endSymbol; // This is a linker symbol, end of binary in memory
+    out << "Creating a temporary heap at 0x" << endOfBinary << " of size 4k\n";
+    mem::heapInitialize(endOfBinary,4*1024);
+
     // Setup Interrupts
+    out << "Attempting to enable interrupts\n";
+    
+    kernel::interruptDescriptorTable idt;
+
+    idt.init();
+
+    out << "Are they enabled?...\n";
 
     earlyPanic("Shouldn't be seeing this!!!");
 }
