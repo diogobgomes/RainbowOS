@@ -11,7 +11,7 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS on )
 # Preprocessor directives
 add_compile_definitions(__lib__)
 
-include(${CMAKE_SOURCE_DIR}/include/sources.cmake)
+#include(${CMAKE_SOURCE_DIR}/include/sources.cmake)
 
 # VARIABLES
 file(GLOB_RECURSE LIB_SRC_LIST CONFIGURE_DEPENDS "*.cpp" "*.c" "*.S")

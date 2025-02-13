@@ -57,6 +57,9 @@ set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/build-scripts")
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/config)
 
+file(GLOB_RECURSE LIB_SRC_LIST CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/include/*.hpp ${CMAKE_SOURCE_DIR}/include/*.h)
+
+
 # Subdirectories
 add_subdirectory(lib)
 add_subdirectory(bootloader)
