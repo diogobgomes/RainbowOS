@@ -15,6 +15,8 @@
 #include <devices/BIOSVideoIO.hpp>
 #include <earlyLib/memory.hpp>
 #include <kernel/interrupts.hpp>
+#include <devices/cpu/cpuid.hpp>
+#include <devices/cpu/apic.hpp>
 
 
 extern "C" {
@@ -59,7 +61,21 @@ void kmain( uint32_t multiboot_flag,
     out << "Creating a temporary heap at 0x" << endOfBinary << " of size 4k\n";
     mem::heapInitialize(endOfBinary,4*1024);
 
+    // Check CPUID
+    if (check_CPUID_available())
+    {
+        out << "CPUID is supported\n";
+    } else earlyPanic("Error: CPUID is not supported, aborting!");
+    
+    // Check APIC
+    if (! kernel::cpu::checkApic())
+        earlyPanic("Error: APIC is not supported, aborting!");
+
     // Setup Interrupts
+    out << "Enabling APIC\n";
+
+    kernel::cpu::enableAPIC();
+
     out << "Attempting to enable interrupts\n";
     
     kernel::interruptDescriptorTable idt;

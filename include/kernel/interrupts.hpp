@@ -161,7 +161,15 @@ static inline void enableInterrupts(void) { __asm__ __volatile__ ("sti"); }
  */
 static inline void disableInterrupts(void) { __asm__ __volatile__ ("cli"); }
 
+/**
+ * @brief Disable the PIC
+ * 
+ */
+void disablePIC(void);
+
 } // namespace kernel
+
+
 
 /**
  * @brief Main C++ interrupt handler

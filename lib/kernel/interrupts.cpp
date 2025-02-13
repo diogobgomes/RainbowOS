@@ -12,6 +12,9 @@
 #include <kernel/interrupts.hpp>
 #include <kernel/gdt.h>
 #include <klib/cstdlib.hpp>
+#include <klib/asmIO.hpp>
+#include <devices/cpu/pic.hpp>
+#include <klib/io.hpp>
 
 extern "C" void *_handler_stub_table[];
 
@@ -32,7 +35,7 @@ bool kernel::interruptDescriptorTable::installInterrupt(uint8_t vector,
     
     entry->flags.dpl=dpl;
     entry->flags.present = 1;
-    entry->flags.type = 0xf; // 32-bit trap
+    entry->flags.type = 0xe; // 32-bit interrupt
     entry->flags.zero = 0; // Make sure it's zero
 
     return true;
@@ -72,10 +75,32 @@ bool kernel::interruptDescriptorTable::init()
     
 }
 
+void kernel::disablePIC()
+{
+    using namespace kernel::cpu;
+    kernel::sendByteAssembly(ICW_1, PIC_COMMAND_MASTER);
+    kernel::sendByteAssembly(ICW_1, PIC_COMMAND_SLAVE);
+    kernel::sendByteAssembly(ICW_2_MASTER, PIC_DATA_MASTER);
+    kernel::sendByteAssembly(ICW_2_SLAVE, PIC_DATA_SLAVE);
+    kernel::sendByteAssembly(ICW_3_MASTER, PIC_DATA_MASTER);
+    kernel::sendByteAssembly(ICW_3_SLAVE, PIC_DATA_SLAVE);
+    kernel::sendByteAssembly(ICW_4, PIC_DATA_MASTER);
+    kernel::sendByteAssembly(ICW_4, PIC_DATA_SLAVE);
+    kernel::sendByteAssembly(PIC_MASK_INTERRUPTS, PIC_DATA_MASTER);
+    kernel::sendByteAssembly(PIC_MASK_INTERRUPTS, PIC_DATA_SLAVE);
+}
+
 void interruptHandler( kernel::isr_frame_t isr_frame )
 {
     // For now, let's just call an early panic
     uint32_t vector = isr_frame.intNumber;
+
+    if (vector == 0xff) // Spurious interrupt
+    {
+        out << "Warning: Spurious interrupt caught\n";
+        return;
+    }
+    
 
     // Build str
     char msg[] = "Interrupt called with vector xxx";
