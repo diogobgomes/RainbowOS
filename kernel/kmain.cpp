@@ -17,6 +17,7 @@
 #include <kernel/interrupts.hpp>
 #include <devices/cpu/cpuid.hpp>
 #include <devices/cpu/apic.hpp>
+#include "acpiKernel.hpp"
 
 
 extern "C" {
@@ -70,6 +71,14 @@ void kmain( uint32_t multiboot_flag,
     // Check APIC
     if (! kernel::cpu::checkApic())
         earlyPanic("Error: APIC is not supported, aborting!");
+
+    // Try to find ACPI headers
+    kernel::acpi::xsdp* acpiTablePtr = kernel::acpi::findRSDP();
+    if (acpiTablePtr == nullptr)
+        earlyPanic("Error: Could not find the XSDP, aborting!");
+    else
+        out << "Found ACPI tables at location " <<
+            reinterpret_cast<uint32_t>(acpiTablePtr) << "\n";
 
     // Setup Interrupts
     out << "Enabling APIC\n";

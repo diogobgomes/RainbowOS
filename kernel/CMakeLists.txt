@@ -17,6 +17,7 @@ add_executable(
     kernel.bin
     boot.S
     kmain.cpp
+    acpi.cpp
     ${HEADER_FILES}
 )
 
