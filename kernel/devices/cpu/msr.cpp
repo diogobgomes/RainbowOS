@@ -9,8 +9,8 @@
  * 
  */
 
-#include <devices/cpu/msr.hpp>
-#include <devices/cpu/cpuid.hpp>
+#include <kernelInternal/devices/cpu/msr.hpp>
+#include <kernelInternal/devices/cpu/cpuid.hpp>
 
 bool kernel::cpu::checkMSR()
 {

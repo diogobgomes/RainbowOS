@@ -10,17 +10,16 @@
  */
 
 #include <stdint.h>
-#include "acpiKernel.hpp"
+#include <kernelInternal/acpiKernel.hpp>
 #include <stddef.h>
-//#include <klib/string.h>
 
 // Auxiliary functions
 static bool specialStrComp(const char*, const char*);
-static kernel::acpi::xsdp* searchRSDP();
-static bool checkSumOld(uint8_t*);
-static bool checkSumNew(uint8_t*);
-static bool checkRSDP(kernel::acpi::xsdp*);
+static kernel::acpi::xsdp_desc* searchRSDPDesc();
+static bool checkSum(uint8_t* ptr, size_t size);
+static bool checkRSDPDesc(kernel::acpi::xsdp_desc*);
 
+// BUG replace this with a fucking memcmp, what crack were you smoking?
 bool specialStrComp(const char* a, const char* b)
 {
     for ( size_t i = 0; i < kernel::acpi::RSDP_SEARCH_STR_LEN; i++ )
@@ -31,7 +30,7 @@ bool specialStrComp(const char* a, const char* b)
     return true;
 }
 
-kernel::acpi::xsdp* searchRSDP()
+kernel::acpi::xsdp_desc* searchRSDPDesc()
 {
     using namespace kernel::acpi;
     
@@ -41,7 +40,7 @@ kernel::acpi::xsdp* searchRSDP()
             ptr++)//ptr+=16)
     {
         if (specialStrComp(RSDP_SEARCH_STR,ptr)) // Are the same
-            return reinterpret_cast<xsdp*>(ptr);
+            return reinterpret_cast<xsdp_desc*>(ptr);
     }
 
     // Now search BIOS
@@ -50,17 +49,17 @@ kernel::acpi::xsdp* searchRSDP()
             ptr++)//ptr+=16 )
     {
         if (specialStrComp(RSDP_SEARCH_STR,ptr))
-            return reinterpret_cast<xsdp*>(ptr);
+            return reinterpret_cast<xsdp_desc*>(ptr);
     }
 
     // Not found
     return nullptr;
 }
 
-bool checkSumOld(uint8_t* ptr)
+bool checkSum(uint8_t* ptr, size_t size)
 {
     unsigned int res = 0;
-    for (size_t i = 0; i < sizeof(kernel::acpi::rsdp); i++)
+    for (size_t i = 0; i < size; i++)
     {
         res += ptr[i];
     }
@@ -70,45 +69,27 @@ bool checkSumOld(uint8_t* ptr)
     return false;
 }
 
-bool checkSumNew(uint8_t* ptr)
-{
-    // Check old part
-    if(!checkSumOld(ptr))
-        return false;
-
-    // Check new part
-    unsigned int res = 0;
-    for (size_t i = sizeof(kernel::acpi::rsdp); i < sizeof(kernel::acpi::xsdp); i++)
-    {
-        res += ptr[i];
-    }
-
-    if( (res & 0xff) == 0)
-        return true;
-    return false;
-}
-
-bool checkRSDP(kernel::acpi::xsdp* ptr)
+bool checkRSDPDesc(kernel::acpi::xsdp_desc* ptr)
 {
     if (ptr->revision == 0) // ACPI version 1.0
     {
-        return checkSumOld(reinterpret_cast<uint8_t*>(ptr));
+        return checkSum(reinterpret_cast<uint8_t*>(ptr),sizeof(kernel::acpi::rsdp_desc));
     } else if (ptr->revision == 2) // ACPI version 2.0 and later
     {
-        return checkSumNew(reinterpret_cast<uint8_t*>(ptr));
+        return checkSum(reinterpret_cast<uint8_t*>(ptr),sizeof(kernel::acpi::xsdp_desc));
     }
 
     // Invalid revision
     return false;
 }
 
-kernel::acpi::xsdp* kernel::acpi::findRSDP()
+kernel::acpi::xsdp_desc* kernel::acpi::findRSDPDesc()
 {
     using namespace kernel::acpi;
 
-    xsdp* ptr = searchRSDP();
+    xsdp_desc* ptr = searchRSDPDesc();
 
-    if(!checkRSDP(ptr))
+    if(!checkRSDPDesc(ptr))
         return nullptr;
 
     return ptr;

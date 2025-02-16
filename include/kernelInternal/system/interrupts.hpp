@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <kernel/cpu.hpp>
+#include <kernelInternal/devices/cpu/cpu.hpp>
 
 #define IDT_SIZE 256
 

@@ -13,6 +13,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <kernelInternal/acpi.hpp>
 
 namespace kernel::cpu
 {
@@ -86,8 +87,33 @@ namespace kernel::cpu
         CURRENT_COUNT = 0x390,
         DIVIDE_CONFIGURATION = 0x3E0
     };
-    
 
+    enum class ioapic_register_offset : uint32_t
+    {
+        IOREGSEL = 0x00,
+        IOWIN = 0x10
+    };
+
+    enum class ioapic_mm_register : uint32_t
+    {
+        IOAPICID = 0x00,
+        IOAPICVER = 0x01,
+        IOAPICARB = 0x02,
+        IOREDTBL = 0x03 // Range 0x03 - 0x3f
+    };
+
+    class io_apic
+    {
+    private:
+        kernel::acpi::madt_entry_type1* _ptr;
+    public:
+        io_apic(kernel::acpi::acpi_madt* ptr);
+        uint32_t read(ioapic_mm_register reg);
+        void write(ioapic_mm_register reg, uint32_t value);
+    };
+    
+    
+    // TODO change lapic to class
     /**
      * @brief Checks if APIC is present
      * 

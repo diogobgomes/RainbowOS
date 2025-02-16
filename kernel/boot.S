@@ -20,7 +20,7 @@
 .long CHECKSUM
 
 # Include the GDT defines
-#include <kernel/gdt.h>
+#include <kernelInternal/gdt.h>
 
 
 # BSS

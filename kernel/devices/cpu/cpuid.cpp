@@ -9,7 +9,7 @@
  * 
  */
 
-#include <devices/cpu/cpuid.hpp>
+#include <kernelInternal/devices/cpu/cpuid.hpp>
 #include <stdint.h>
 
 void kernel::cpu::cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)

@@ -9,9 +9,12 @@
  * 
  */
 
+ //BUG Move this to acpi.hpp
+
 #pragma once
 
 #include <stdint.h>
+#include <kernelInternal/acpi.hpp>
 
 namespace kernel::acpi
 {
@@ -26,35 +29,11 @@ static const char RSDP_SEARCH_STR[] =    "RSD PTR";
 static const int RSDP_SEARCH_STR_LEN =   7; /* We could do constexpr, but would have
                                         to implement function, it's just easier*/
 
-
-struct rsdp
-{
-    char            signature[8];
-    uint8_t         checksum;
-    char            OEMID[6];
-    uint8_t         revision;
-    uint32_t        rsdt_address;
-}__attribute__((packed));
-
-struct xsdp
-{
-    char            signature[8];
-    uint8_t         checksum;
-    char            oemid[6];
-    uint8_t         revision;
-    uint32_t        rsdt_address;
-
-    uint32_t        length;
-    uint64_t        xsdt_address;
-    uint8_t         extended_checksumn;
-    uint8_t         reserverd[3];
-}__attribute__((packed));
-
 /**
  * @brief Finds the RSDP (XSDP) ACPI tables in the appropriate memory locations
  * 
- * @return xsdp* Pointer to found table, nullptr if no table is found
+ * @return xsdp_desc* Pointer to found table, nullptr if no table is found
  */
-xsdp* findRSDP();
+xsdp_desc* findRSDPDesc(); // BUG in the validation we're doing it all wrong
 
 } // namespace kernel::acpi

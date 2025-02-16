@@ -12,12 +12,19 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS on )
 add_compile_definitions(__kernel__)
 
 #include(${CMAKE_SOURCE_DIR}/include/sources.cmake)
-
+# TODO at some point, we might want to glob here as well
 add_executable(
     kernel.bin
     boot.S
     kmain.cpp
-    acpi.cpp
+    devices/acpiKernel.cpp
+    devices/cpu/apic.cpp
+    devices/cpu/checkCPUID.S
+    devices/cpu/cpuid.cpp
+    devices/cpu/msr.cpp
+    system/interrupts.cpp
+    system/interruptHandler.S
+    system/acpi.cpp
     ${HEADER_FILES}
 )
 

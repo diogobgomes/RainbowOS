@@ -9,11 +9,11 @@
  * 
  */
 
-#include <kernel/interrupts.hpp>
-#include <kernel/gdt.h>
+#include <kernelInternal/system/interrupts.hpp>
+#include <kernelInternal/gdt.h>
 #include <klib/cstdlib.hpp>
 #include <klib/asmIO.hpp>
-#include <devices/cpu/pic.hpp>
+#include <kernelInternal/devices/cpu/pic.hpp>
 #include <klib/io.hpp>
 
 extern "C" void *_handler_stub_table[];
@@ -92,6 +92,8 @@ void kernel::disablePIC()
 
 void interruptHandler( kernel::isr_frame_t isr_frame )
 {
+    // BUG don't forget that we should send the EOI signal to the APIC
+
     // For now, let's just call an early panic
     uint32_t vector = isr_frame.intNumber;
 

@@ -14,10 +14,10 @@
 #include <klib/cstdlib.hpp>
 #include <devices/BIOSVideoIO.hpp>
 #include <earlyLib/memory.hpp>
-#include <kernel/interrupts.hpp>
-#include <devices/cpu/cpuid.hpp>
-#include <devices/cpu/apic.hpp>
-#include "acpiKernel.hpp"
+#include <kernelInternal/system/interrupts.hpp>
+#include <kernelInternal/devices/cpu/cpuid.hpp>
+#include <kernelInternal/devices/cpu/apic.hpp>
+#include <kernelInternal/acpiKernel.hpp>
 
 
 extern "C" {
@@ -72,18 +72,43 @@ void kmain( uint32_t multiboot_flag,
     if (! kernel::cpu::checkApic())
         earlyPanic("Error: APIC is not supported, aborting!");
 
+    // Finding ACPI
+    kernel::acpi::acpi_header acpiHeader;
+    if(acpiHeader.getType() == 1)
+        out << "We have a type 1 ACPI table\n";
+    else
+        out << "We have a type 2 ACPI table\n";
+
+    // Finding MADT
+    kernel::acpi::acpi_madt madt(&acpiHeader);
+    auto type1 = reinterpret_cast<kernel::acpi::madt_entry_type1*>(madt.getEntry(1));
+
+    out << "Found type 1 MADT @ " << reinterpret_cast<uint32_t>(type1) << "\n";
+
+    
+    
+    /*
     // Try to find ACPI headers
-    kernel::acpi::xsdp* acpiTablePtr = kernel::acpi::findRSDP();
-    if (acpiTablePtr == nullptr)
+    auto RSDPDescPtr = kernel::acpi::findRSDPDesc();
+    if (RSDPDescPtr == nullptr)
         earlyPanic("Error: Could not find the XSDP, aborting!");
+    else if(RSDPDescPtr->revision==0)
+        out << "Why god oh why???\n";
+    else if(RSDPDescPtr->revision!=2) // Only support xsdp
+        earlyPanic("Error: ACPI is not XSDP, aborting!");
     else
         out << "Found ACPI tables at location " <<
-            reinterpret_cast<uint32_t>(acpiTablePtr) << "\n";
+            reinterpret_cast<uint32_t>(RSDPDescPtr) << "\n";
 
     // Setup Interrupts
+    // LAPIC
     out << "Enabling APIC\n";
-
     kernel::cpu::enableAPIC();
+
+    // IOAPIC
+    kernel::cpu::io_apic ioAPIC(RSDPDescPtr);
+
+    out << "IOAPIC found at address " << reinterpret_cast<uint32_t>(ioAPIC._ptr) << "\n" ;
 
     out << "Attempting to enable interrupts\n";
     
@@ -91,7 +116,7 @@ void kmain( uint32_t multiboot_flag,
 
     idt.init();
 
-    out << "Are they enabled?...\n";
+    out << "Are they enabled?...\n";*/
 
     earlyPanic("Shouldn't be seeing this!!!");
 }
