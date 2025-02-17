@@ -86,6 +86,8 @@ struct isr_frame_t
     uint32_t intNumber, errorCode, eip, cs, eflags;
 };
 
+__attribute__((aligned(0x10)))
+static interruptDescriptor __idt_table[256];
 
 /**
  * @brief Class 
@@ -104,7 +106,8 @@ public:
      */
     interruptDescriptorTable()
     {
-        _IDT = new interruptDescriptor[IDT_SIZE];
+        //_IDT = new interruptDescriptor[IDT_SIZE];
+        _IDT = __idt_table;
         initialized = false;
         //_interruptHandlers = new void*[IDT_SIZE];
     }
@@ -115,7 +118,7 @@ public:
      */
     ~interruptDescriptorTable()
     {
-        delete[] _IDT; // Should never actually run, but that's fine
+        //delete[] _IDT; // Should never actually run, but that's fine
         //delete[] _interruptHandlers;
     }
 

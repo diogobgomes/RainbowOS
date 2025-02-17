@@ -23,12 +23,10 @@ bool kernel::interruptDescriptorTable::installInterrupt(uint8_t vector,
 {
     uint32_t handler_addr = reinterpret_cast<uint32_t>(handler);
 
-    // Check that vector is valid
-    if (vector > 256 || vector >= 0)
-        return false;
+    // Vector is always valid, no need to check (max uint8_t = 255)
 
     // Fill the entry
-    interruptDescriptor* entry = &_IDT[vector];
+    interruptDescriptor *entry = _IDT + vector;
     entry->address_low = handler_addr & 0xFFFF;
     entry->address_high = (handler_addr >> 16) & 0xFFFF;
     entry->segment_selector = CODE32_KSEGMENT;
@@ -46,7 +44,7 @@ void kernel::interruptDescriptorTable::loadIDT()
 {
     interruptDescriptorTableRegister idtReg;
     idtReg.size = 0xFFF; // For practical purposes, we always have a full IDT
-    idtReg.address = reinterpret_cast<uint32_t>(this);
+    idtReg.address = reinterpret_cast<uint32_t>(_IDT);
 
     disableInterrupts();
     __asm__ __volatile__("lidt %0" :: "m"(idtReg)); 
@@ -66,6 +64,9 @@ bool kernel::interruptDescriptorTable::init()
     if (initialized == true) // It's already enabled, can't enable again
         return false;
 
+    // Disable PIC
+    disablePIC();
+
     // Install all interrupts
     this->installAll();
 
@@ -77,6 +78,7 @@ bool kernel::interruptDescriptorTable::init()
 
 void kernel::disablePIC()
 {
+    // BUG bochs doesn't like this
     using namespace kernel::cpu;
     kernel::sendByteAssembly(ICW_1, PIC_COMMAND_MASTER);
     kernel::sendByteAssembly(ICW_1, PIC_COMMAND_SLAVE);

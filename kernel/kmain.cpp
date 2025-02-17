@@ -18,6 +18,7 @@
 #include <kernelInternal/devices/cpu/cpuid.hpp>
 #include <kernelInternal/devices/cpu/apic.hpp>
 #include <kernelInternal/acpiKernel.hpp>
+#include <debug.h>
 
 
 extern "C" {
@@ -91,6 +92,16 @@ void kmain( uint32_t multiboot_flag,
 
     out << "Enabled local APIC\n";
 
+    out << "Attempting to enable interrupts\n";
+    
+    kernel::interruptDescriptorTable idt;
+
+    idt.init();
+
+    out << "Are they enabled?...\n";
+
+    BOCHS_STOP
+    __asm__ __volatile__ ("int $0x34");
     
     /*
     // Try to find ACPI headers
