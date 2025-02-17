@@ -16,7 +16,6 @@
 #include <kernelInternal/devices/cpu/apic.hpp>
 #include <klib/string.h>
 #include <klib/cstdlib.hpp>
-//#include <klib/io.hpp>
 
 using namespace kernel::cpu;
 
@@ -27,24 +26,28 @@ bool kernel::cpu::checkApic()
     return d & static_cast<uint32_t>(cpuid_features::CPUID_FEAT_EDX_APIC);
 }
 
-kernel::cpu::lapic_base_register* kernel::cpu::getAPICRegister()
+/**========================================================================
+ *                           CLASS l_apic
+ *========================================================================**/
+
+l_apic::l_apic()
 {
+    if (!checkApic())
+        earlyPanic("In kernel::cpu::l_apic constructor: Error: No APIC present!");
+    
+    // Get the base registers
     uint32_t a,b,c,d;
     cpuid(1,&a,&b,&c,&d);
-    return reinterpret_cast<lapic_base_register*>(a);
+    _reg = reinterpret_cast<lapic_base_register*>(a);
 }
 
-void kernel::cpu::enableAPIC()
+void l_apic::enable()
 {
-    /* Get the APIC register */
-    lapic_base_register* lapicRegAddr = getAPICRegister();
+    // Set enabled bit
+    setMSR(IA32_APIC_BASE_MSR,reinterpret_cast<uint32_t>(_reg) & 0xfffff000,0);
 
-    /* Set enabled bit */
-    setMSR(IA32_APIC_BASE_MSR,reinterpret_cast<uint32_t>(lapicRegAddr) & 0xfffff000,0);
-
-    /* Set the Spurious Interrupt Vector register enable bit to start receiving interrupts */
-
-    uint32_t* lapicReg = reinterpret_cast<uint32_t*>(lapicRegAddr->address << 12);
+    // Set the Spurious Interrupt Vector register enable bit to start receiving interrupts
+    uint32_t* lapicReg = reinterpret_cast<uint32_t*>(_reg->address << 12);
 
     auto regPtr = reinterpret_cast<spurious_interrupt_vector_register*>
         (lapicReg + static_cast<uint32_t>(lapic_registers::SPURIOUS_INTERRUPT_VECTOR));
@@ -57,7 +60,8 @@ void kernel::cpu::enableAPIC()
 /**========================================================================
  *                           CLASS io_apic
  *========================================================================**/
-io_apic::io_apic(kernel::acpi::acpi_madt* ptr)
+
+ io_apic::io_apic(kernel::acpi::acpi_madt* ptr)
 {
     // Try to get a madt type 1 entry
     auto entry = ptr->getEntry(1);

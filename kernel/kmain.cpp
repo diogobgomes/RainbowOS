@@ -67,10 +67,6 @@ void kmain( uint32_t multiboot_flag,
     {
         out << "CPUID is supported\n";
     } else earlyPanic("Error: CPUID is not supported, aborting!");
-    
-    // Check APIC
-    if (! kernel::cpu::checkApic())
-        earlyPanic("Error: APIC is not supported, aborting!");
 
     // Finding ACPI
     kernel::acpi::acpi_header acpiHeader;
@@ -85,7 +81,16 @@ void kmain( uint32_t multiboot_flag,
 
     out << "Found type 1 MADT @ " << reinterpret_cast<uint32_t>(type1) << "\n";
 
-    
+    kernel::cpu::io_apic ioAPIC(&madt);
+
+    out << "IO APIC is good\n";
+
+    // LAPIC
+    kernel::cpu::l_apic localAPIC;
+    localAPIC.enable();
+
+    out << "Enabled local APIC\n";
+
     
     /*
     // Try to find ACPI headers

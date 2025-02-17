@@ -112,6 +112,14 @@ namespace kernel::cpu
         void write(ioapic_mm_register reg, uint32_t value);
     };
     
+    class l_apic
+    {
+    private:
+        lapic_base_register* _reg;
+    public:
+        l_apic();
+        void enable();
+    };
     
     // TODO change lapic to class
     /**
@@ -121,19 +129,6 @@ namespace kernel::cpu
      * @return false If it's not present
      */
     bool checkApic(void);
-
-    /**
-     * @brief Get the address of the LAPIC base register
-     * 
-     * @return lapic_base_register* 
-     */
-    lapic_base_register* getAPICRegister();
-
-    /**
-     * @brief Enable the APIC
-     * 
-     */
-    void enableAPIC();
     
 } // namespace kernel::cpu
 
