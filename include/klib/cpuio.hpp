@@ -1,5 +1,5 @@
 /**
- * @file asmIO.hpp
+ * @file cpuio.hpp
  * @author Diogo Gomes (dbarrosgomes@gmail.com)
  * @brief Functions with inline assembly to directly interact with memory in real
  * mode
@@ -13,26 +13,26 @@
 #pragma once
 #include <stdint.h>
 
-namespace kernel{
+namespace kernel::cpu::io
+{
 
-static inline void sendByteAssembly(uint8_t byte, uint16_t port)
+static const int io_port = 0x80;
+
+static inline void outb(uint16_t port, uint8_t byte)
 {
     __asm__ __volatile__ ("outb %[b], %[p]" : : [b]"a"(byte), [p]"Nd"(port));
 }
 
-static inline uint8_t receiveByteAssembly(uint16_t port)
+static inline uint8_t inb(uint16_t port)
 {
     uint8_t byte;
     __asm__ __volatile__ ("inb %[p], %[b]" : [b]"=a"(byte) : [p]"Nd"(port));
     return byte;
 }
 
-static inline uint64_t readMSR(uint32_t msr)
+static inline void iowait()
 {
-    uint32_t eax;
-    uint32_t edx;
-    __asm__ __volatile__ ("rdmsr" : "=a"(eax), "=d"(edx) : "c"(msr));
-    return eax | (edx << 32);
+    outb(io_port,0);
 }
 
 } // namespace kernel

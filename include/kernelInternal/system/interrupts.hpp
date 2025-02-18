@@ -20,6 +20,9 @@
 namespace kernel
 {
 
+static const int MASTER_PIC_VECTOR_OFFSET = 0xfe;
+static const int SLAVE_PIC_VECTOR_OFFSET = 0xfe;
+
 /**
  * @brief Flag field of the interrupt descriptor
  * 

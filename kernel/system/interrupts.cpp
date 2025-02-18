@@ -12,7 +12,7 @@
 #include <kernelInternal/system/interrupts.hpp>
 #include <kernelInternal/gdt.h>
 #include <klib/cstdlib.hpp>
-#include <klib/asmIO.hpp>
+#include <klib/cpuio.hpp>
 #include <kernelInternal/devices/cpu/pic.hpp>
 #include <klib/io.hpp>
 
@@ -78,18 +78,30 @@ bool kernel::interruptDescriptorTable::init()
 
 void kernel::disablePIC()
 {
-    // BUG bochs doesn't like this
     using namespace kernel::cpu;
-    kernel::sendByteAssembly(ICW_1, PIC_COMMAND_MASTER);
-    kernel::sendByteAssembly(ICW_1, PIC_COMMAND_SLAVE);
-    kernel::sendByteAssembly(ICW_2_MASTER, PIC_DATA_MASTER);
-    kernel::sendByteAssembly(ICW_2_SLAVE, PIC_DATA_SLAVE);
-    kernel::sendByteAssembly(ICW_3_MASTER, PIC_DATA_MASTER);
-    kernel::sendByteAssembly(ICW_3_SLAVE, PIC_DATA_SLAVE);
-    kernel::sendByteAssembly(ICW_4, PIC_DATA_MASTER);
-    kernel::sendByteAssembly(ICW_4, PIC_DATA_SLAVE);
-    kernel::sendByteAssembly(PIC_MASK_INTERRUPTS, PIC_DATA_MASTER);
-    kernel::sendByteAssembly(PIC_MASK_INTERRUPTS, PIC_DATA_SLAVE);
+    using namespace kernel::cpu::io;
+
+    // Remap the interrupts first
+    outb(PIC_COMMAND_MASTER,ICW1_INIT | ICW1_ICW4); // starts init in cascade mode
+    iowait();
+    outb(PIC_COMMAND_SLAVE,ICW1_INIT | ICW1_ICW4);
+    iowait();
+    outb(PIC_DATA_MASTER,MASTER_PIC_VECTOR_OFFSET);
+    iowait();
+    outb(PIC_DATA_SLAVE,SLAVE_PIC_VECTOR_OFFSET);
+    iowait();
+    outb(PIC_DATA_MASTER,4); // Tell master PIC there is a slave PIC at IRQ2
+    iowait();
+    outb(PIC_DATA_SLAVE,2); // Tell slave PIC its cascade identity (2)
+    iowait();
+    outb(PIC_DATA_MASTER,ICW4_8086); // Use 8086 mode
+    iowait();
+    outb(PIC_DATA_SLAVE,ICW4_8086);
+    iowait();
+
+    // Mask both PICs
+    outb(PIC_DATA_MASTER,PIC_MASK_INTERRUPTS);
+    outb(PIC_DATA_SLAVE,PIC_MASK_INTERRUPTS);
 }
 
 void interruptHandler( kernel::isr_frame_t isr_frame )
@@ -104,6 +116,8 @@ void interruptHandler( kernel::isr_frame_t isr_frame )
         out << "Warning: Spurious interrupt caught\n";
         return;
     }
+
+    out << " INFO: Interrupt called with vector 0x" << vector << "\n";
     
 
     // Build str
