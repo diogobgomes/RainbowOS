@@ -4,7 +4,7 @@ BOCHS is a powerful emulator that gives us more information that qemu, sometimes
 
 One particularly useful feature it has is that it allows for the setup of _magic breakpoints_ using the assembly instruction ```xchgw %bx, %bx```. However, to use it, BOCHS must be compiled from source.
 
-The configuration options that worked for were:
+The configuration options that worked for me were:
 ```
 ./configure --enable-smp \
             --enable-cpu-level=6 \

@@ -70,3 +70,16 @@ First thing, though. We want our bootloader to do all this, but as before, the B
 One way out is with a 2-stage bootloader: the first, **stage0**, only needs to load the second, **stage1**, that can now be much bigger, and that can then load the rest of the kernel. We'll actually also have a small **Multiboot** stage, that just implements the Multiboot protocol.
 
 To see more about the design, visit the [design doc](bootloader/README.md).
+
+## Chapter 3 - Kernel
+We can now start talking about a proper "operating system kernel", so to speak. The first big advantage compared to before is that we can compile the final kernel executable to be an ELF binary instead of just a straight up binary, which gives us more control particularly over uninitialized memory (the ``.bss`` section), as well as the location of stuff in memory. This will prove important when setting up paging, although we're not there yet.
+
+Contrary to the bootloader, which is a non-interactive program (the user does not interact with at all), the kernel must set up an execution environment, but after that it just stays there, waiting for stuff to happen.
+
+How does the kernel wait for stuff to happen? Though the use of processor interrupts. These form one of the basis of the x86 (and may other) architecture. To activate these, we must set up a valid **IDT**, or Interrupt Descriptor Table. This object, similar to the **GDT**, is essentially an array of pointers to functions, which are the Interrupt Handlers, i.e. the functions that are called when some interrupt is raised.
+
+We must also set up the **Local APIC**, which is a per core component that controls external hardware interrupts, and how they are sent to the processor via interrupts. Additionally, there's also the **I/O APIC**, which is a per processor component, that directly interacts with external devices, and functions essentially as a traffic signaler, directing different events to different cores to be handled.
+
+After all of these are set up, we can enable interrupts, and start dealing with other pieces of hardware.
+
+One basic piece of hardware is a timer. There are many options on modern processors, with different characteristics and different capabilities and shortcomings. Some common examples are the **HPET** and the **Local APIC Timer**, which will be the two we're going to set up. The **Local APIC Timer** is better, more precise, lower latency, and just overall better, but it must be calibrated against some known timer, which is where the **HPET** comes in, since it self-reports it's calibration.

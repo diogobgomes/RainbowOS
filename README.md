@@ -25,9 +25,13 @@ With all of that done, you just have to run CMake to build the operating system.
     - [x] Stage0
     - [x] Stage1
     - [x] Multiboot-loader
-- [ ] GDT
+- [x] GDT
 - [ ] Paging
 - [ ] IDT
+    - [x] Local APIC
+    - [ ] I/O APIC
+- [ ] HPET
+- [ ] Local APIC timer
 - [ ] Keyboard
 
 ## More information
